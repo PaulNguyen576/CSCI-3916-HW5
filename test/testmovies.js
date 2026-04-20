@@ -25,14 +25,26 @@ let movie_details = {
 let token = ''
 
 describe('Test Movie Routes', () => {
-   before(async () => { // Before test initialize the database to empty
-        await User.deleteOne({ name: 'test2' });
-        await Movie.deleteOne({ title: 'Alice in Wonderland' });
+   before((done) => { //Before  test initialize the database to empty
+        User.deleteOne({ name: 'test2'}, function(err, user) {
+            if (err) throw err;
+        });
+       
+        Movie.deleteOne({ title: 'Alice in Wonderland'}, function(err, user) {
+            if (err) throw err;
+        });
+       done();
     })
 
-    after(async () => { // after this test suite empty the database
-        await User.deleteOne({ name: 'test2' });
-        await Movie.deleteOne({ title: 'Alice in Wonderland' });
+    after((done) => { //after this test suite empty the database
+        User.deleteOne({ name: 'test2'}, function(err, user) {
+            if (err) throw err;
+        });
+       
+        Movie.deleteOne({ title: 'Alice in Wonderland'}, function(err, user) {
+            if (err) throw err;
+        });
+        done();
     })
 
     describe('/signup', () => {
@@ -41,7 +53,7 @@ describe('Test Movie Routes', () => {
               .post('/signup')
               .send(login_details)
               .end((err, res) =>{
-                                res.should.have.status(201);
+                res.should.have.status(200);
                 res.body.success.should.be.eql(true);
                 //follow-up to get the JWT token
                 chai.request(server)
@@ -65,7 +77,7 @@ describe('Test Movie Routes', () => {
                 .set('Authorization', token)
                 .send(movie_details)
                 .end((err, res) => {
-                    res.should.have.status(201);
+                    res.should.have.status(200);
                     done();
                 })
         })
@@ -80,9 +92,8 @@ describe('Test Movie Routes', () => {
                 .send()
                 .end((err, res) => {
                     res.should.have.status(200);
-                    res.body.should.have.property('movies');
-                    res.body.movies.should.be.an('array');
-                    res.body.movies.forEach(movie => {
+                    res.body.should.be.an('array');
+                    res.body.forEach(movie => {
                         movie.should.have.property('title')
                         movie.should.have.property('releaseDate')
                         movie.should.have.property('genre')

@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 const passport = require('passport');
 const authJwtController = require('./auth_jwt'); // You're not using authController, consider removing it
 const jwt = require('jsonwebtoken');
@@ -220,6 +221,18 @@ router.route('/movies')
               foreignField: 'movieId',
               as: 'reviews'
             }
+          },
+          {
+            $addFields: {
+              avgRating: {
+                $ifNull: [{ $avg: '$reviews.rating' }, 0]
+              }
+            }
+          },
+          {
+            $sort: {
+              avgRating: -1
+            }
           }
         ]);
       } else {
@@ -268,10 +281,17 @@ router.route('/movies/:movieparameter')
           },
           {
             $lookup: {
-              from: 'Reviews',
+              from: 'reviews',
               localField: '_id',
               foreignField: 'movieId',
               as: 'reviews'
+            }
+          },
+          {
+            $addFields: {
+              avgRating: {
+                $ifNull: [{ $avg: '$reviews.rating' }, 0]
+              }
             }
           }
         ]);
@@ -396,7 +416,7 @@ router.route('/test')
 
 app.use('/', router);
 
-const PORT = process.env.PORT || 8080; // Define PORT before using it
+const PORT = process.env.PORT || 8081; // Define PORT before using it
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
